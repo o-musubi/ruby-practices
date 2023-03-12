@@ -21,14 +21,14 @@ def first_last
 end
 
 def print_calendar
-  print_period = first_last
-  puts "#{'\s' * 5}#{print_period[:first].month}月\\s#{print_period[:first].year}"
-  %(日 月 火 水 木 金 土).each { |str| print str, '\s' }
-  print '\n'
-  print_period[:first].wday.times { print '\s' * 3 }
-  (print_period[:first]..print_period[:last]).each do |date|
-    print date.strftime('%e'), '\s'
-    print '\n' if date.saturday?
+  printed_period = first_last
+  puts "#{"\s" * 5}#{printed_period[:first].month}月 #{printed_period[:first].year}"
+  %w[日 月 火 水 木 金 土].each { |str| print str, "\s" }
+  print "\n"
+  printed_period[:first].wday.times { print "\s" * 3 }
+  (printed_period[:first]..printed_period[:last]).each do |date|
+    print date.strftime('%e'), "\s"
+    print "\n" if date.saturday?
   end
 end
 
