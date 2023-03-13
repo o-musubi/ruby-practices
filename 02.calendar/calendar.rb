@@ -4,29 +4,28 @@
 require 'date'
 require 'optparse'
 
-def option_valid?
+def recieve_options
   params = ARGV.getopts('m:', 'y:')
-  option = { month: params['m'].to_i, year: params['y'].to_i }
-  option[:month] = Date.today.month unless (1..12).cover?(option[:month])
-  option[:year] = Date.today.year unless (1970..2100).cover?(option[:year])
-  option
+  recieved_options = { month: params['m'].to_i, year: params['y'].to_i }
+  recieved_options[:month] = Date.today.month unless (1..12).cover?(recieved_options[:month])
+  recieved_options[:year] = Date.today.year unless (1970..2100).cover?(recieved_options[:year])
+  recieved_options
 end
 
-def first_last
-  base_date = option_valid?
-  target_period = {}
-  target_period[:first] = Date.new(base_date[:year], base_date[:month], 1)
-  target_period[:last] = Date.new(base_date[:year], base_date[:month], -1)
-  target_period
+def determine_period
+  options = recieve_options
+  {
+    first: Date.new(options[:year], options[:month], 1),
+    last: Date.new(options[:year], options[:month], -1)
+  }
 end
 
 def print_calendar
-  printed_period = first_last
-  puts "#{"\s" * 5}#{printed_period[:first].month}月 #{printed_period[:first].year}"
-  %w[日 月 火 水 木 金 土].each { |str| print str, "\s" }
-  print "\n"
-  printed_period[:first].wday.times { print "\s" * 3 }
-  (printed_period[:first]..printed_period[:last]).each do |date|
+  period = determine_period
+  puts "#{"\s" * 5}#{period[:first].month}月 #{period[:first].year}"
+  puts '日 月 火 水 木 金 土'
+  period[:first].wday.times { print "\s" * 3 }
+  (period[:first]..period[:last]).each do |date|
     print date.strftime('%e'), "\s"
     print "\n" if date.saturday?
   end
