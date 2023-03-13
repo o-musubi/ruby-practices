@@ -12,7 +12,7 @@ def recieve_options
   recieved_options
 end
 
-def determine_period
+def determine_dates
   options = recieve_options
   {
     first: Date.new(options[:year], options[:month], 1),
@@ -21,11 +21,11 @@ def determine_period
 end
 
 def print_calendar
-  period = determine_period
-  puts "#{"\s" * 5}#{period[:first].month}月 #{period[:first].year}"
+  dates = determine_dates
+  puts "#{"\s" * 5}#{dates[:first].month}月 #{dates[:first].year}"
   puts '日 月 火 水 木 金 土'
-  period[:first].wday.times { print "\s" * 3 }
-  (period[:first]..period[:last]).each do |date|
+  dates[:first].wday.times { print "\s" * 3 }
+  (dates[:first]..dates[:last]).each do |date|
     print date.strftime('%e'), "\s"
     print "\n" if date.saturday?
   end
