@@ -13,19 +13,13 @@ scores.each do |s|
   end
 end
 
-frames = []
-shots.each_slice(2) do |s|
-  frames << s
-end
-
+frames = shots.each_slice(2).to_a
 point = 0
-times = 1
-under_tenth = frames.take(9)
 
-under_tenth.each do |frame|
-  subsequent_score = frames[times]
+frames.take(9).each.with_index(1) do |frame, index|
+  subsequent_score = frames[index]
   if frame[0] == 10 && subsequent_score[0] == 10
-    after_next = frames[times + 1]
+    after_next = frames[index + 1]
     point += 20 + after_next[0]
   elsif frame[0] == 10
     point += 10 + subsequent_score.sum
@@ -34,7 +28,6 @@ under_tenth.each do |frame|
   else
     point += frame.sum
   end
-  times += 1
 end
 
 (9..11).each do |i|
