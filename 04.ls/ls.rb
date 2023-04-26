@@ -2,36 +2,28 @@
 # frozen_string_literal: true
 
 def main
-  file = format_file
-  file[:splited_columns].each.with_index(1).cycle(file[:column_difference]) do |column, index|
-    displayed_columns = [] << column.shift
-    if displayed_columns[0].nil?
-      puts ' '
-    elsif file[:splited_columns[file[:specific_number]]].nil? && index == file[:specific_number]
-      printf('%-20s', displayed_columns[0])
-      puts ' '
-    elsif index == file[:maximum_columns]
-      printf('%-20s', displayed_columns[0])
-      puts ' '
-    else
-      printf('%-20s', displayed_columns[0])
-    end
+  condition = find_condition
+  condition[:splited_columns].each.with_index(1).cycle(condition[:column_difference]) do |column, index|
+    displayed_name = column.shift
+    printf("%-#{condition[:maximum]}s\t", displayed_name)
+    puts ' ' if displayed_name.nil? || index == MAXIMUM_COLUMNS || !condition[:specific_case].zero? && index == MAXIMUM_COLUMNS - condition[:specific_case]
   end
 end
 
-def set_conditions
+def find_file
   {
-    file: Dir.glob('*'),
-    maximum_columns: 3
+    list: Dir.glob('*')
   }
 end
 
-def format_file
-  condition = set_conditions
-  condition[:column_difference] = condition[:file].size.ceildiv(condition[:maximum_columns])
-  condition[:splited_columns] = condition[:file].sort.each_slice(condition[:column_difference]).to_a
-  condition[:specific_number] = condition[:splited_columns].size
-  condition
+def find_condition
+  file = find_file
+  file[:column_difference] = file[:list].size.ceildiv(MAXIMUM_COLUMNS)
+  file[:maximum] = file[:list].map { |a| a.to_s.bytesize }.max
+  file[:splited_columns] = file[:list].each_slice(file[:column_difference]).to_a
+  file[:specific_case] = MAXIMUM_COLUMNS - file[:splited_columns].size
+  file
 end
 
+MAXIMUM_COLUMNS = 3
 main
