@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 def main
-  condition = find_condition
+  condition = find_conditions
   condition[:splited_columns].each.with_index(1).cycle(condition[:column_difference]) do |column, index|
     displayed_name = column.shift
     printf("%-#{condition[:maximum]}s\t", displayed_name)
@@ -16,7 +16,7 @@ def find_file
   }
 end
 
-def find_condition
+def find_conditions
   file = find_file
   file[:column_difference] = file[:list].size.ceildiv(MAXIMUM_COLUMNS)
   file[:maximum] = file[:list].map { |a| a.to_s.bytesize }.max
