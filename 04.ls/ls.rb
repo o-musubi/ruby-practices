@@ -2,27 +2,41 @@
 # frozen_string_literal: true
 
 def main
-  condition = find_condition
-  condition[:splited_columns].each.with_index(1).cycle(condition[:column_difference]) do |column, index|
-    displayed_name = column.shift
-    printf("%-#{condition[:maximum]}s\t", displayed_name)
-    puts ' ' if displayed_name.nil? || index == MAXIMUM_COLUMNS || !condition[:specific_case].zero? && index == MAXIMUM_COLUMNS - condition[:specific_case]
+  print_files
+end
+
+def print_files
+  files = format_files
+  width = files[:list].map { |a| a.to_s.bytesize }.max
+  files[:displayed_files].each do |displayed_files|
+    displayed_files.each do |displayed_file|
+      printf("%-#{width}s\t", displayed_file)
+    end
+    puts ' '
   end
 end
 
-def find_file
+def format_files
+  files = find_files
+  column_difference = files[:list].size.ceildiv(MAXIMUM_COLUMNS)
+  splited_columns = files[:list].each_slice(column_difference).to_a
+  sorted_files = []
+  splited_columns.cycle(column_difference) { |splited_column| sorted_files << splited_column.shift }
+
+  specific_count = MAXIMUM_COLUMNS - splited_columns.size
+  files[:displayed_files] =
+    if specific_count.zero?
+      sorted_files.each_slice(MAXIMUM_COLUMNS).to_a
+    else
+      sorted_files.each_slice(MAXIMUM_COLUMNS - specific_count).to_a
+    end
+  files
+end
+
+def find_files
   {
     list: Dir.glob('*')
   }
-end
-
-def find_condition
-  file = find_file
-  file[:column_difference] = file[:list].size.ceildiv(MAXIMUM_COLUMNS)
-  file[:maximum] = file[:list].map { |a| a.to_s.bytesize }.max
-  file[:splited_columns] = file[:list].each_slice(file[:column_difference]).to_a
-  file[:specific_case] = MAXIMUM_COLUMNS - file[:splited_columns].size
-  file
 end
 
 MAXIMUM_COLUMNS = 3
