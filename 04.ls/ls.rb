@@ -2,10 +2,6 @@
 # frozen_string_literal: true
 
 def main
-  print_files
-end
-
-def print_files
   files = format_files
   width = files[:list].map { |a| a.to_s.bytesize }.max
   files[:displayed_files].each do |displayed_files|
