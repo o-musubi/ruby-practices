@@ -2,37 +2,49 @@
 # frozen_string_literal: true
 
 def main
-  files = format_files
-  width = files[:list].map { |a| a.to_s.bytesize }.max
-  files[:displayed_files].each do |displayed_files|
-    displayed_files.each do |displayed_file|
-      printf("%-#{width}s\t", displayed_file)
+  file_names = find_file_names
+  formatted_file_names = format_file_names(file_names)
+  display_files(formatted_file_names)
+end
+
+def find_file_names
+  Dir.glob('*')
+end
+
+def format_file_names(found_file_names)
+  file_names = found_file_names
+  difference = column_difference(file_names)
+  columns = splited_columns(file_names, difference)
+
+  file_names_to_display = []
+  chunk = []
+  specific_count = MAXIMUM_COLUMNS - columns.size
+
+  columns.cycle(difference).with_index(1) do |column, i|
+    chunk << column.shift
+    if !specific_count.zero? && (i % (MAXIMUM_COLUMNS - specific_count)).zero? ||
+       specific_count.zero? && (i % MAXIMUM_COLUMNS).zero?
+      file_names_to_display << chunk.clone
+      chunk.clear
     end
+  end
+  file_names_to_display
+end
+
+def column_difference(file_names)
+  file_names.size.ceildiv(MAXIMUM_COLUMNS)
+end
+
+def splited_columns(file_names, difference)
+  file_names.each_slice(difference).to_a
+end
+
+def display_files(nested_file_names)
+  width = nested_file_names.flatten.map { |a| a.to_s.bytesize }.max
+  nested_file_names.each do |file_names|
+    file_names.each { |file_name| printf("%-#{width}s\t", file_name) }
     puts ' '
   end
-end
-
-def format_files
-  files = find_files
-  column_difference = files[:list].size.ceildiv(MAXIMUM_COLUMNS)
-  splited_columns = files[:list].each_slice(column_difference).to_a
-  sorted_files = []
-  splited_columns.cycle(column_difference) { |splited_column| sorted_files << splited_column.shift }
-
-  specific_count = MAXIMUM_COLUMNS - splited_columns.size
-  files[:displayed_files] =
-    if specific_count.zero?
-      sorted_files.each_slice(MAXIMUM_COLUMNS).to_a
-    else
-      sorted_files.each_slice(MAXIMUM_COLUMNS - specific_count).to_a
-    end
-  files
-end
-
-def find_files
-  {
-    list: Dir.glob('*')
-  }
 end
 
 MAXIMUM_COLUMNS = 3
