@@ -15,7 +15,18 @@ def format_file_names(found_file_names)
   file_names = found_file_names
   difference = column_difference(file_names)
   columns = splited_columns(file_names, difference)
+  file_names_to_display = swap_file_names(difference, columns)
+end
 
+def column_difference(file_names)
+  file_names.size.ceildiv(MAXIMUM_COLUMNS)
+end
+
+def splited_columns(file_names, difference)
+  file_names.each_slice(difference).to_a
+end
+
+def swap_file_names(difference, columns)
   file_names_to_display = []
   chunk = []
   specific_count = MAXIMUM_COLUMNS - columns.size
@@ -29,14 +40,6 @@ def format_file_names(found_file_names)
     end
   end
   file_names_to_display
-end
-
-def column_difference(file_names)
-  file_names.size.ceildiv(MAXIMUM_COLUMNS)
-end
-
-def splited_columns(file_names, difference)
-  file_names.each_slice(difference).to_a
 end
 
 def display_files(nested_file_names)
