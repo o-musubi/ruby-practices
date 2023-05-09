@@ -6,7 +6,7 @@ MAXIMUM_COLUMNS = 3
 def main
   file_names = find_file_names
   formatted_file_names = format_file_names(file_names)
-  display_files(formatted_file_names)
+  display_file_names(formatted_file_names)
 end
 
 def find_file_names
@@ -36,7 +36,7 @@ def swap_file_names(row_size, rows)
   file_names_to_display
 end
 
-def display_files(nested_file_names)
+def display_file_names(nested_file_names)
   width = nested_file_names.flatten.map { |a| a.to_s.bytesize }.max
   nested_file_names.each do |file_names|
     file_names.each { |file_name| printf("%-#{width}s\t", file_name) }
