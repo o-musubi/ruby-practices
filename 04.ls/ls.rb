@@ -11,12 +11,9 @@ def main
 end
 
 def find_file_names
-  options = ARGV.getopts('a')
-  if options['a']
-    Dir.glob('*', File::FNM_DOTMATCH)
-  else
-    Dir.glob('*')
-  end
+  params = ARGV.getopts('a')
+  flags = params['a'] ? File::FNM_DOTMATCH : 0
+  Dir.glob('*', flags)
 end
 
 def format_file_names(found_file_names)
