@@ -5,12 +5,12 @@ require 'optparse'
 MAXIMUM_COLUMNS = 3
 
 def main
-  file_names = find_file_names
+  file_names = set_file_names
   formatted_file_names = format_file_names(file_names)
   display_file_names(formatted_file_names)
 end
 
-def find_file_names
+def set_file_names
   params = ARGV.getopts('r')
   file_names = Dir.glob('*')
   params['r'] ? file_names.reverse : file_names
