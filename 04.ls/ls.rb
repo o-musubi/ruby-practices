@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'optparse'
 MAXIMUM_COLUMNS = 3
 
 def main
@@ -10,7 +11,9 @@ def main
 end
 
 def find_file_names
-  Dir.glob('*')
+  params = ARGV.getopts('a')
+  flags = params['a'] ? File::FNM_DOTMATCH : 0
+  Dir.glob('*', flags)
 end
 
 def format_file_names(found_file_names)
