@@ -4,6 +4,25 @@
 require 'optparse'
 require 'etc'
 MAXIMUM_COLUMNS = 3
+TYPE_PATTERNS = {
+  '01' => 'p',
+  '02' => 'c',
+  '04' => 'd',
+  '06' => 'b',
+  '10' => '-',
+  '12' => 'l',
+  '14' => 's'
+}.freeze
+PERMISSION_PATTERNS = {
+  '0' => '---',
+  '1' => '--x',
+  '2' => '-w-',
+  '3' => '-wx',
+  '4' => 'r--',
+  '5' => 'r-x',
+  '6' => 'rw-',
+  '7' => 'rwx'
+}.freeze
 
 def main
   params = ARGV.getopts('l')
@@ -20,59 +39,44 @@ end
 def fetch_details(file_names)
   file_names.each_with_object([]) do |file_name, details|
     object = File.stat(file_name)
-    details << [object.mode.to_s(8), object.nlink, object.uid, object.gid, object.size, object.mtime, file_name]
+    details << {
+      file_mode: object.mode.to_s(8),
+      hardlink: object.nlink,
+      user_id: object.uid,
+      group_id: object.gid,
+      file_size: object.size,
+      last_update_time: object.mtime,
+      file_names: file_name
+    }
   end
 end
 
 def format_file_details(file_details)
   file_details.map do |file_detail|
     [
-      replace_number(file_detail[0]),
-      file_detail[1],
-      Etc.getpwuid(file_detail[2]).name,
-      Etc.getgrgid(file_detail[3]).name,
-      file_detail[4],
-      file_detail[5].strftime('%a %d %H:%M'),
-      file_detail[6]
+      file_mode_bit_to_string(file_detail[:file_mode]),
+      file_detail[:hardlink],
+      Etc.getpwuid(file_detail[:user_id]).name,
+      Etc.getgrgid(file_detail[:group_id]).name,
+      file_detail[:file_size],
+      file_detail[:last_update_time].strftime('%a %d %H:%M'),
+      file_detail[:file_names]
     ]
   end
 end
 
-def replace_number(number)
+def file_mode_bit_to_string(number)
   number.prepend('0') if number.size == 5
-  type = replace_type(number[0..1])
+  type = TYPE_PATTERNS[number[0..1]]
   permission = replace_permission(number[3..5])
   permission = replace_specific_permisson(permission, number[2]) unless number[2].to_i.zero?
   type.dup << permission
 end
 
-def replace_type(number)
-  type_patterns = {
-    '01' => 'p',
-    '02' => 'c',
-    '04' => 'd',
-    '06' => 'b',
-    '10' => '-',
-    '12' => 'l',
-    '14' => 's'
-  }
-  type_patterns[number]
-end
-
 def replace_permission(number)
   splitted_numbers = number.chars
   permission = +''
-  permission_patterns = {
-    '0' => '---',
-    '1' => '--x',
-    '2' => '-w-',
-    '3' => '-wx',
-    '4' => 'r--',
-    '5' => 'r-x',
-    '6' => 'rw-',
-    '7' => 'rwx'
-  }
-  splitted_numbers.each { |splitted_number| permission << permission_patterns[splitted_number] }
+  splitted_numbers.each { |splitted_number| permission << PERMISSION_PATTERNS[splitted_number] }
   permission
 end
 
@@ -82,7 +86,10 @@ def replace_specific_permisson(permission, number)
     permission[8] = permission[8].tr('x', 't').tr('-', 'T')
   when '2'
     permission[5] = permission[5].tr('x', 's').tr('-', 'S')
-  when '3'
+  when '4'
+    permission[2] = permission[2].tr('x', 's').tr('-', 'S')
+  when '6'
+    permission[5] = permission[5].tr('x', 's').tr('-', 'S')
     permission[2] = permission[2].tr('x', 's').tr('-', 'S')
   end
   permission
