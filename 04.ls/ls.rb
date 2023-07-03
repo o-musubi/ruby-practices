@@ -25,15 +25,17 @@ PERMISSION_PATTERNS = {
 }.freeze
 
 def main
-  params = ARGV.getopts('l')
+  params = ARGV.getopts('arl')
   file_information = fetch_file_information(params)
   formatted_file_information = params['l'] ? format_file_details(file_information) : format_file_names(file_information)
   output_file_information(formatted_file_information, file_information, params)
 end
 
 def fetch_file_information(params)
-  file_names = Dir.glob('*')
-  params['l'] ? fetch_details(file_names) : file_names
+  flags = params['a'] ? File::FNM_DOTMATCH : 0
+  file_names = Dir.glob('*', flags)
+  file_information = params['l'] ? fetch_details(file_names) : file_names
+  params['r'] ? file_information.reverse : file_information
 end
 
 def fetch_details(file_names)
@@ -81,17 +83,10 @@ def replace_permission(number)
 end
 
 def replace_specific_permisson(permission, number)
-  case number
-  when '1'
-    permission[8] = permission[8].tr('x', 't').tr('-', 'T')
-  when '2'
-    permission[5] = permission[5].tr('x', 's').tr('-', 'S')
-  when '4'
-    permission[2] = permission[2].tr('x', 's').tr('-', 'S')
-  when '6'
-    permission[5] = permission[5].tr('x', 's').tr('-', 'S')
-    permission[2] = permission[2].tr('x', 's').tr('-', 'S')
-  end
+  mode_bits = number.to_i
+  permission[8] = permission[8].tr('x-', 'tT') if mode_bits[0] == 1
+  permission[5] = permission[5].tr('x-', 'sS') if mode_bits[1] == 1
+  permission[2] = permission[2].tr('x-', 'sS') if mode_bits[2] == 1
   permission
 end
 
