@@ -15,9 +15,9 @@ end
 def pick_params_from_argv
   opt = OptionParser.new
   params = {}
-  opt.on('-l') { |v| v }
-  opt.on('-w') { |v| v }
-  opt.on('-c') { |v| v }
+  opt.on('-l') { |param| param }
+  opt.on('-w') { |param| param }
+  opt.on('-c') { |param| param }
   opt.parse!(ARGV, into: params)
   params
 end
@@ -26,11 +26,11 @@ def select_source_data
   if ARGV.empty?
     $stdin.read
   else
-    file_open(ARGV)
+    open_file(ARGV)
   end
 end
 
-def file_open(file_names)
+def open_file(file_names)
   file_names.each_with_object([]) do |file_name, texts|
     File.open(file_name) { |lines| texts << lines.readlines.join }
   end
