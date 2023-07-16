@@ -5,11 +5,12 @@ require 'optparse'
 
 def main
   params = pick_params_from_argv
-  source_data = select_source_data
+  file_names = ARGV
+  source_data = select_source_data(file_names)
   counted_data = count(source_data)
   filtered_data = filter_data_by_argument(params, counted_data)
   transformed_data = transform_data(filtered_data)
-  output(transformed_data)
+  output(transformed_data, file_names)
 end
 
 def pick_params_from_argv
@@ -22,11 +23,11 @@ def pick_params_from_argv
   params
 end
 
-def select_source_data
-  if ARGV.empty?
-    $stdin.read
+def select_source_data(file_names)
+  if file_names.empty?
+    [$stdin.read]
   else
-    open_file(ARGV)
+    open_file(file_names)
   end
 end
 
@@ -38,40 +39,10 @@ end
 
 def count(texts)
   {
-    l: count_lines(texts),
-    w: count_words(texts),
-    c: count_byte(texts)
+    l: texts.each_with_object([]) { |text, lines_count| lines_count << text.count("\n") },
+    w: texts.each_with_object([]) { |text, words_count| words_count << text.squeeze(' ').split.size },
+    c: texts.each_with_object([]) { |text, byte_count| byte_count << text.bytesize }
   }
-end
-
-def count_lines(texts_of_file)
-  lines_count = []
-  if texts_of_file.instance_of?(Array)
-    texts_of_file.each { |text| lines_count << text.count("\n") }
-  else
-    lines_count << texts_of_file.count("\n")
-  end
-  lines_count
-end
-
-def count_words(texts_of_file)
-  words_count = []
-  if texts_of_file.instance_of?(Array)
-    texts_of_file.each { |text| words_count << text.squeeze(' ').split.size }
-  else
-    words_count << texts_of_file.squeeze(' ').split.size
-  end
-  words_count
-end
-
-def count_byte(texts_of_file)
-  byte_count = []
-  if texts_of_file.instance_of?(Array)
-    texts_of_file.each { |text| byte_count << text.bytesize }
-  else
-    byte_count << texts_of_file.bytesize
-  end
-  byte_count
 end
 
 def filter_data_by_argument(params, counted_data)
@@ -84,13 +55,13 @@ def filter_data_by_argument(params, counted_data)
 end
 
 def transform_data(filtered_data)
-  if ARGV.empty?
+  if filtered_data[0].size == 1
     {
       width: calculate_width(filtered_data),
-      data: filtered_data.flatten
+      data: [filtered_data.flatten]
     }
   else
-    add_total(filtered_data)
+    filtered_data.each { |array| array << array.sum }
     {
       width: calculate_width(filtered_data),
       data: sort_data(filtered_data)
@@ -99,11 +70,7 @@ def transform_data(filtered_data)
 end
 
 def calculate_width(filtered_data)
-  filtered_data.flatten.map { |data| data.to_s.bytesize }.each_slice(filtered_data.size).to_a.map(&:max)
-end
-
-def add_total(filtered_data)
-  filtered_data.each { |array| array << array.sum } unless (filtered_data[0].size == 1) || ARGV.empty?
+  filtered_data.flatten.map { |data| data.to_s.bytesize }.max
 end
 
 def sort_data(filtered_data)
@@ -116,18 +83,27 @@ def sort_data(filtered_data)
   displayed_array
 end
 
-def output(displayed_data)
-  if ARGV.empty?
-    displayed_data[:data].each { |array| printf("%#{displayed_data[:width].join.to_i * 2}s ", array) }
+def output(displayed_data, file_names)
+  if file_names.empty?
+    output_stdin_data(displayed_data)
   else
-    file_name = ARGV.dup
-    file_name << 'total' if (file_name.size != 1) && !ARGV.empty?
-    displayed_data[:data].each_with_index do |displayed_array, first_index|
-      displayed_array.each_with_index do |array, second_index|
-        printf("%#{displayed_data[:width][second_index]}s ", array)
-      end
-      print "#{file_name[first_index]}\n"
+    output_files_data(displayed_data, file_names)
+  end
+end
+
+def output_stdin_data(displayed_data)
+  displayed_data[:data].flatten.each { |data| print '     ', data.to_s }
+  puts ' '
+end
+
+def output_files_data(displayed_data, file_names)
+  file_names << 'total' unless displayed_data[:data].size == 1
+  displayed_data[:data].each_with_index do |displayed_array, index|
+    displayed_array.each do |array|
+      print array.to_s.rjust(displayed_data[:width])
+      print ' '
     end
+    puts file_names[index]
   end
 end
 
