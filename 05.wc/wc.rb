@@ -85,25 +85,17 @@ end
 
 def output(displayed_data, file_names)
   if file_names.empty?
-    output_stdin_data(displayed_data)
+    displayed_data[:data].flatten.each { |data| print '     ', data.to_s }
+    puts ' '
   else
-    output_files_data(displayed_data, file_names)
-  end
-end
-
-def output_stdin_data(displayed_data)
-  displayed_data[:data].flatten.each { |data| print '     ', data.to_s }
-  puts ' '
-end
-
-def output_files_data(displayed_data, file_names)
-  file_names << 'total' unless displayed_data[:data].size == 1
-  displayed_data[:data].each_with_index do |displayed_array, index|
-    displayed_array.each do |array|
-      print array.to_s.rjust(displayed_data[:width])
-      print ' '
+    file_names << 'total' unless displayed_data[:data].size == 1
+    displayed_data[:data].each_with_index do |displayed_array, index|
+      displayed_array.each do |array|
+        print array.to_s.rjust(displayed_data[:width])
+        print ' '
+      end
+      puts file_names[index]
     end
-    puts file_names[index]
   end
 end
 
